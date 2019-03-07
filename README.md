@@ -7,6 +7,6 @@ In the Ghidra Script Manager click the "Script Directories" icon in the toolbar 
 
 ## binwalk.py
 
-Runs binwalk on the current program and bookmarks addresses of findings. Requires binwalk to be in `$PATH`.
+Runs binwalk on the current program and bookmarks the findings. Requires binwalk to be in `$PATH`.
 
 ![Example result: SHA256 constants found by binwalk.](images/binwalk.png)
