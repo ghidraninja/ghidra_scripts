@@ -20,3 +20,9 @@ Automatically find crypto constants in the loaded program - allows to very quick
 Runs yara with the patterns found in yara-crypto.yar on the current program. The Yara rules are licensed under GPLv2. In addition @phoul's SHA256 rule was added.
 
 Requires `yara` to be in `$PATH`.
+
+## golang_renamer.py
+
+Restores function names from a stripped Go binary. This script was contributed by QwErTy (QwErTyReverse on Telegram) and is a port of George Zaytsev's go_renamer.py.
+
+![Example result: Function names restored by golang_renamer.py](images/golang_renamer.png)
