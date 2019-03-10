@@ -21,6 +21,12 @@ Runs yara with the patterns found in yara-crypto.yar on the current program. The
 
 Requires `yara` to be in `$PATH`.
 
+## swift_demangler.py
+
+Automatically demangle swift function names. For more complex functions it adds the full demangled name into the function comment. Requires `swift` to be in `$PATH`.
+
+![Example result: Swift demangling of a simple entry function.](images/swift_demangler.png)
+
 ## golang_renamer.py
 
 Restores function names from a stripped Go binary. This script was contributed by QwErTy (QwErTyReverse on Telegram) and is a port of George Zaytsev's go_renamer.py.
