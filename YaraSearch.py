@@ -1,39 +1,90 @@
-# Yara search on the current file and create bookmarks and EOL comments for findings.
-#@author Thomas Roth code@stacksmashing.net
-#@category Search.YARA
-#@keybinding
-#@menupath Search.YARA search
-#@toolbar
+#Searches the program via YARA.
+#@author 
+#@category Search
+#@keybinding 
+#@menupath Search.YARA
+#@toolbar 
 
-import os
-import subprocess
-import tempfile
-import os
-import csv
+import os, tempfile
+
+from subprocess import Popen, PIPE
 from ghidra.program.model.listing import CodeUnit
+from ghidra.program.util import ProgramSelection
+from ghidra.util.exception import CancelledException
+from ghidra.program.model.mem import MemoryAccessException
 
-def add_bookmark_comment(addr, text):
-	cu = currentProgram.getListing().getCodeUnitAt(addr)
-	createBookmark(addr, "yara", text)
-	cu.setComment(CodeUnit.EOL_COMMENT, text)
-
-file_location = currentProgram.getDomainFile().getMetadata()["Executable Location"]
+PIPE_BUFFER_SIZE=10*1024*1024
+SCRIPT_NAME="YaraSearch.py"
+COMMENT_STYLE = CodeUnit.PRE_COMMENT
 
 try:
-	rule_location = askFile("Select YARA rule", "Search").getPath()
-	current_rule = None
-	output = subprocess.check_output(["yara", "--print-string-length", rule_location, file_location], stderr=None)
-	for line in output.splitlines():
+	rule_file = askFile(SCRIPT_NAME, "Search with YARA rule").getPath()
+except CancelledException as e:
+	print "[!] CANCELLED: " + str(e)
+	exit()
+
+# get all memory ranges
+ranges = currentProgram.getMemory().getAddressRanges()
+
+for r in ranges:
+	begin = r.getMinAddress()
+	end = r.getMaxAddress()
+	length = r.getLength()
+	
+	status = "Searching: " + r.toString()
+	print "[+] " + status
+
+	try:
+		bytes = getBytes(begin,length)
+	except MemoryAccessException as e:
+		print "[!] FAILED: " + str(e)
+		continue
+
+	try:
+		tmp = tempfile.NamedTemporaryFile(delete=False)
+		print "[+] using temporary file " + tmp.name
+		tmp.write(bytes)
+		tmp.close()
+
+		command = "yara " + rule_file + " -gs " + tmp.name
+		p = Popen(command, stdout=PIPE, stderr=PIPE, shell=True, bufsize=PIPE_BUFFER_SIZE)
+		stdout, stderr = p.communicate()
+	finally:
+		os.unlink(tmp.name)
+
+ 	#print stderr
+
+	# fail on non successful execution
+	if p.returncode != 0:
+		print "[!] FAILED: subprocess did not return with 0 (=success)"
+		continue
+
+	lines = stdout.splitlines()
+	rule = ""
+	tag = ""
+	for line in lines:
 		if line.startswith("0x"):
-			if current_rule:
-				addr_int = int(line.split(":")[0][2:], 16)
-				addr = currentProgram.minAddress.add(addr_int)
-				add_bookmark_comment(addr, current_rule)
+			l = line.split(":")
+			addr = int(l[0],16)
+			string = l[1]
+			match = l[2]
+			createBookmark(begin.add(addr), SCRIPT_NAME, rule + " " + tag)
+			cu = currentProgram.getListing().getCodeUnitAt(begin.add(addr))
+			if cu == None:
+				print "ERROR: CodeUnitAt " + begin.add(addr).toString() + " does not exist! Can't set comment."
+				continue
+			comment = cu.getComment(COMMENT_STYLE)
+			if comment == None or comment == "":
+				comment = ""
+			else:
+				comment += "\n"
+			comment += SCRIPT_NAME + "\n"
+			comment += rule + " " + tag + "\n"
+			comment += string + ": " + match
+			cu.setComment(COMMENT_STYLE, comment)
+			print line
 		else:
-			print(line)
-			current_rule = line.split(" ")[0]
-
-except Exception as e:
-	print("Failed")
-	print(e)
-
+			rule = line.split()[0]
+			tag = line.split()[1]
+			print rule + " " + tag
+	print "[$] SUCCESS"
