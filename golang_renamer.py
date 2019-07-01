@@ -12,18 +12,18 @@ ported to GHIDRA by QwErTy (QwErTyReverse on Telegram)
 """
 
 from ghidra.program.model.symbol.SourceType import *
+from ghidra.program.model.data import *
 import string
 import random
 
 addressFactory = currentProgram.getAddressFactory()
 functionManager = currentProgram.getFunctionManager()
-dataTypeManager = currentProgram.getDataTypeManager()
 listing = currentProgram.getListing()
 memory = currentProgram.getMemory()
 
-DWORD = dataTypeManager.getDataType("/dword")
-QWORD = dataTypeManager.getDataType("/qword")
-CSTRING = dataTypeManager.getDataType("/TerminatedCString")
+DWORD = DWordDataType()
+QWORD = QWordDataType()
+CSTRING = TerminatedStringDataType()
 
 class bitZ(object):
     def __init__(self, ptr, size, maker):
