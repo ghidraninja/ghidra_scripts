@@ -21,6 +21,10 @@ Runs yara with the patterns found in yara-crypto.yar on the current program. The
 
 Requires `yara` to be in `$PATH`.
 
+## export_gameboy_rom.py
+
+Exports working ROMs from ROMs imported using Gekkio's [GhidraBoy](https://github.com/Gekkio/GhidraBoy).
+
 ## swift_demangler.py
 
 Automatically demangle swift function names. For more complex functions it adds the full demangled name into the function comment. Requires `swift` to be in `$PATH`.
