@@ -30,11 +30,9 @@ for f in fns:
     signature = signature.replace("$u20$", " ")
     signature = signature.replace("$C$", ",")
     signature = signature.replace(".", ":")
+    signature = signature.replace(" ", "_")
 
-    try:
-        f.setName(signature, SourceType.ANALYSIS)
-    except:
-        pass
+    f.setName(signature, SourceType.ANALYSIS)
 
 # Get symbols
 st = currentProgram.getSymbolTable();
